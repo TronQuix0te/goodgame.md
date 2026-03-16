@@ -22,6 +22,9 @@ export default function BuildDetail() {
   const [forking, setForking] = useState(false);
   const [forkName, setForkName] = useState('');
   const [contentExpanded, setContentExpanded] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   useEffect(() => {
     if (!buildName) return;
@@ -35,7 +38,32 @@ export default function BuildDetail() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    // Load comments
+    api<{ comments: any[] }>(`/builds/${buildName}/comments`)
+      .then(d => setComments(d.comments))
+      .catch(() => {});
   }, [buildName]);
+
+  const handleAddComment = async () => {
+    if (!build || !newComment.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const data = await api<{ comments: any[] }>(`/builds/${build.name}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({ content: newComment }),
+      });
+      setComments(data.comments);
+      setNewComment('');
+    } catch {} finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!build) return;
+    await api(`/builds/${build.name}/comments/${commentId}`, { method: 'DELETE' });
+    setComments(comments.filter(c => c.id !== commentId));
+  };
 
   const handleCopy = async () => {
     if (!build) return;
@@ -364,6 +392,66 @@ export default function BuildDetail() {
           ))}
         </div>
       )}
+
+      {/* Comments */}
+      <div className="py-6 border-t border-t-dim/10">
+        <div className="text-xs text-t-dim uppercase tracking-widest mb-4">
+          COMMENTS {comments.length > 0 && `(${comments.length})`}
+        </div>
+
+        {user && (
+          <div className="mb-6">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddComment()}
+                placeholder="ADD A COMMENT..."
+                maxLength={1000}
+                className="flex-1 bg-transparent border-b border-t-dim/30 outline-none text-t-mid text-sm py-1 uppercase tracking-wider placeholder:text-t-dim/30"
+              />
+              <button
+                onClick={handleAddComment}
+                disabled={submittingComment || !newComment.trim()}
+                className="text-xs text-t-dim hover:text-t-accent uppercase tracking-widest disabled:text-t-dim/30"
+              >
+                [{submittingComment ? '...' : 'POST'}]
+              </button>
+            </div>
+          </div>
+        )}
+
+        {comments.length === 0 ? (
+          <div className="text-t-dim text-xs uppercase tracking-widest py-4">NO COMMENTS YET</div>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((c: any) => (
+              <div key={c.id} className="py-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Link to={`/user/${c.author}`} className="text-xs text-t-hi hover:text-t-accent uppercase tracking-widest">
+                      @{c.author}
+                    </Link>
+                    <span className="text-xs text-t-dim ml-2">
+                      {new Date(c.created_at + 'Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+                    </span>
+                  </div>
+                  {user && user.id === c.user_id && (
+                    <button
+                      onClick={() => handleDeleteComment(c.id)}
+                      className="text-xs text-t-dim hover:text-t-red uppercase tracking-widest"
+                    >
+                      [DEL]
+                    </button>
+                  )}
+                </div>
+                <div className="text-sm text-t-mid mt-1">{c.content}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

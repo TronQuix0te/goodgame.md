@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 import Noise from './Noise';
 
 const ASCII_LOGO = `  ██████  ██████
@@ -14,6 +15,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    api<{ unread: number }>('/notifications').then(d => setUnreadCount(d.unread)).catch(() => {});
+  }, [user, location.pathname]);
 
   const navLink = (to: string, label: string, match?: (p: string) => boolean) => {
     const active = match ? match(location.pathname) : location.pathname === to;
@@ -48,6 +55,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 {navLink('/submit', 'SUBMIT')}
+                <Link
+                  to="/notifications"
+                  onClick={() => setMenuOpen(false)}
+                  className={`transition-colors ${location.pathname === '/notifications' ? 'text-t-accent' : 'text-t-dim hover:text-t-accent'}`}
+                >
+                  {unreadCount > 0 ? `(${unreadCount})` : ''}NOTIF
+                </Link>
                 {navLink('/profile', `@${user.username.toUpperCase()}`)}
                 {user.is_admin && navLink('/admin', 'ADMIN')}
                 <button onClick={logout} className="text-t-dim hover:text-t-red transition-colors uppercase">LOGOUT</button>
@@ -76,6 +90,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <>
                 {navLink('/submit', 'SUBMIT')}
+                <Link
+                  to="/notifications"
+                  onClick={() => setMenuOpen(false)}
+                  className={`transition-colors ${location.pathname === '/notifications' ? 'text-t-accent' : 'text-t-dim hover:text-t-accent'}`}
+                >
+                  NOTIFICATIONS{unreadCount > 0 ? ` (${unreadCount})` : ''}
+                </Link>
                 {navLink('/profile', `@${user.username.toUpperCase()}`)}
                 {user.is_admin && navLink('/admin', 'ADMIN')}
                 <button onClick={() => { logout(); setMenuOpen(false); }} className="text-t-dim hover:text-t-red transition-colors uppercase text-left">LOGOUT</button>

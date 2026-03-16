@@ -516,4 +516,71 @@ export const pullLogModel = {
       'INSERT INTO pull_log (build_id, ip_hash, user_agent) VALUES (?, ?, ?)'
     ).run(buildId, ipHash, userAgent);
   },
+
+  // Pull analytics: daily pull counts for a build
+  getDailyPulls(buildId: number, days: number = 30) {
+    return getDatabase().prepare(`
+      SELECT date(pulled_at) as day, COUNT(*) as pulls
+      FROM pull_log
+      WHERE build_id = ? AND pulled_at > datetime('now', '-' || ? || ' days')
+      GROUP BY date(pulled_at)
+      ORDER BY day ASC
+    `).all(buildId, days) as { day: string; pulls: number }[];
+  },
+};
+
+// ── Comments ──
+
+export const commentModel = {
+  create(buildId: number, userId: number, content: string) {
+    const result = getDatabase().prepare(
+      'INSERT INTO comments (build_id, user_id, content) VALUES (?, ?, ?)'
+    ).run(buildId, userId, content);
+    return result.lastInsertRowid as number;
+  },
+
+  listByBuildId(buildId: number) {
+    return getDatabase().prepare(`
+      SELECT c.*, u.username as author, u.avatar_url as author_avatar
+      FROM comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.build_id = ?
+      ORDER BY c.created_at ASC
+    `).all(buildId);
+  },
+
+  delete(id: number, userId: number) {
+    return getDatabase().prepare('DELETE FROM comments WHERE id = ? AND user_id = ?').run(id, userId);
+  },
+};
+
+// ── Notifications ──
+
+export const notificationModel = {
+  create(userId: number, type: string, message: string, link?: string) {
+    getDatabase().prepare(
+      'INSERT INTO notifications (user_id, type, message, link) VALUES (?, ?, ?, ?)'
+    ).run(userId, type, message, link || null);
+  },
+
+  listByUserId(userId: number, limit: number = 20) {
+    return getDatabase().prepare(
+      'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?'
+    ).all(userId, limit);
+  },
+
+  unreadCount(userId: number) {
+    const row = getDatabase().prepare(
+      'SELECT COUNT(*) as cnt FROM notifications WHERE user_id = ? AND is_read = 0'
+    ).get(userId) as { cnt: number };
+    return row.cnt;
+  },
+
+  markAllRead(userId: number) {
+    getDatabase().prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0').run(userId);
+  },
+
+  markRead(id: number, userId: number) {
+    getDatabase().prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?').run(id, userId);
+  },
 };

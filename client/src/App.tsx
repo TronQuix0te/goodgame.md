@@ -13,6 +13,7 @@ import Search from './pages/Search';
 import Compare from './pages/Compare';
 import Quiz from './pages/Quiz';
 import ArchetypeDetail from './pages/ArchetypeDetail';
+import Notifications from './pages/Notifications';
 import Blog from './pages/Blog';
 import Article from './pages/Article';
 
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:username" element={<UserProfile />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
             <Route path="/compare" element={<Compare />} />

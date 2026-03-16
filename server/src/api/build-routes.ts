@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { buildModel, buildVersionModel, scoreModel, voteModel, seasonModel } from '../db/models';
+import { buildModel, buildVersionModel, scoreModel, voteModel, seasonModel, commentModel, notificationModel, pullLogModel } from '../db/models';
 import { requireAuth, optionalAuth, AuthRequest } from '../middleware/auth';
 import { judgeuild } from '../judge';
 import { config } from '../config';
@@ -306,6 +306,16 @@ router.post('/:idOrName/fork', requireAuth, async (req: Request, res: Response) 
   }
 
   buildModel.crownChampions(season.id);
+
+  // Notify original author
+  if (original.user_id !== user.id) {
+    notificationModel.create(
+      original.user_id, 'fork',
+      `@${user.username} forked your build @${original.name}`,
+      `/build/${slug}`
+    );
+  }
+
   const build = buildModel.findById(buildId);
   res.status(201).json({ ...build, gg_score: composite });
 });
@@ -348,6 +358,16 @@ router.post('/:idOrName/vote', requireAuth, (req: Request, res: Response) => {
   }
 
   const voted = voteModel.toggle(user.id, build.id);
+
+  // Notify build owner on upvote
+  if (voted && build.user_id !== user.id) {
+    notificationModel.create(
+      build.user_id, 'vote',
+      `@${user.username} voted for your build @${build.name}`,
+      `/build/${build.name}`
+    );
+  }
+
   const updated = buildModel.findById(build.id);
   res.json({ voted, vote_count: updated?.vote_count || 0 });
 });
@@ -430,6 +450,73 @@ router.get('/:idOrName/badge', (req: Request, res: Response) => {
   res.set('Content-Type', 'image/svg+xml');
   res.set('Cache-Control', 'public, max-age=3600');
   res.send(svg);
+});
+
+// Pull analytics
+router.get('/:idOrName/analytics', requireAuth, (req: Request, res: Response) => {
+  const user = (req as AuthRequest).user!;
+  const build = resolveBuild(req.params.idOrName);
+  if (!build) {
+    return res.status(404).json({ error: 'Build not found' });
+  }
+  if (build.user_id !== user.id) {
+    return res.status(403).json({ error: 'Not your build' });
+  }
+
+  const days = Math.min(parseInt(req.query.days as string) || 30, 90);
+  const dailyPulls = pullLogModel.getDailyPulls(build.id, days);
+  res.json({ daily_pulls: dailyPulls, total: build.pull_count });
+});
+
+// Comments
+router.get('/:idOrName/comments', (req: Request, res: Response) => {
+  const build = resolveBuild(req.params.idOrName);
+  if (!build) {
+    return res.status(404).json({ error: 'Build not found' });
+  }
+  const comments = commentModel.listByBuildId(build.id);
+  res.json({ comments });
+});
+
+router.post('/:idOrName/comments', requireAuth, (req: Request, res: Response) => {
+  const user = (req as AuthRequest).user!;
+  const { content } = req.body;
+
+  if (!content || typeof content !== 'string' || content.trim().length < 1) {
+    return res.status(400).json({ error: 'Content is required' });
+  }
+  if (content.length > 1000) {
+    return res.status(400).json({ error: 'Comment too long (max 1000 chars)' });
+  }
+
+  const build = resolveBuild(req.params.idOrName);
+  if (!build) {
+    return res.status(404).json({ error: 'Build not found' });
+  }
+
+  const id = commentModel.create(build.id, user.id, content.trim());
+
+  // Notify build owner
+  if (build.user_id !== user.id) {
+    notificationModel.create(
+      build.user_id, 'comment',
+      `@${user.username} commented on @${build.name}`,
+      `/build/${build.name}`
+    );
+  }
+
+  const comments = commentModel.listByBuildId(build.id);
+  res.status(201).json({ comments });
+});
+
+router.delete('/:idOrName/comments/:commentId', requireAuth, (req: Request, res: Response) => {
+  const user = (req as AuthRequest).user!;
+  const commentId = parseInt(req.params.commentId);
+  const result = commentModel.delete(commentId, user.id);
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Comment not found or not yours' });
+  }
+  res.json({ success: true });
 });
 
 export default router;

@@ -3,7 +3,7 @@ import authRoutes from './auth-routes';
 import buildRoutes from './build-routes';
 import articleRoutes from './article-routes';
 import adminRoutes from './admin-routes';
-import { archetypeModel, seasonModel, buildModel, userModel } from '../db/models';
+import { archetypeModel, seasonModel, buildModel, userModel, notificationModel } from '../db/models';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -45,6 +45,20 @@ router.get('/seasons', (_req: Request, res: Response) => {
 
 router.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Notifications
+router.get('/notifications', requireAuth, (req: Request, res: Response) => {
+  const user = (req as AuthRequest).user!;
+  const notifications = notificationModel.listByUserId(user.id);
+  const unread = notificationModel.unreadCount(user.id);
+  res.json({ notifications, unread });
+});
+
+router.post('/notifications/read', requireAuth, (req: Request, res: Response) => {
+  const user = (req as AuthRequest).user!;
+  notificationModel.markAllRead(user.id);
+  res.json({ success: true });
 });
 
 export default router;

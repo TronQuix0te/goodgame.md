@@ -59,9 +59,15 @@ app.use('/api', apiRoutes);
 const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
 const indexHtml = fs.readFileSync(path.join(clientDist, 'index.html'), 'utf8');
 
-function injectMeta(title: string, description: string, url: string): string {
+function injectMeta(title: string, description: string, url: string, ogImage?: string): string {
   const escapedTitle = title.replace(/"/g, '&quot;').replace(/</g, '&lt;');
   const escapedDesc = description.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+  const imageTags = ogImage ? `
+    <meta property="og:image" content="${ogImage}" />
+    <meta name="twitter:image" content="${ogImage}" />
+    <meta name="twitter:card" content="summary_large_image" />` : `
+    <meta name="twitter:card" content="summary" />`;
 
   const metaTags = `
     <title>${escapedTitle}</title>
@@ -70,8 +76,7 @@ function injectMeta(title: string, description: string, url: string): string {
     <meta property="og:description" content="${escapedDesc}" />
     <meta property="og:url" content="https://goodgame.md${url}" />
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="goodgame.md" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:site_name" content="goodgame.md" />${imageTags}
     <meta name="twitter:title" content="${escapedTitle}" />
     <meta name="twitter:description" content="${escapedDesc}" />`;
 
@@ -125,7 +130,8 @@ app.get('/build/:name', (req, res) => {
     res.send(injectMeta(
       `@${build.name} — goodgame.md`,
       build.title + (build.description ? `. ${build.description}` : ''),
-      `/build/${build.name}`
+      `/build/${build.name}`,
+      `https://goodgame.md/og/${build.name}.svg`
     ));
   } else {
     res.sendFile(path.join(clientDist, 'index.html'));
@@ -191,6 +197,46 @@ app.get('/archetype/:id', (req, res) => {
   } else {
     res.sendFile(path.join(clientDist, 'index.html'));
   }
+});
+
+// OG Card image (SVG)
+app.get('/og/:name.svg', (req, res) => {
+  const build = getDatabase().prepare(`
+    SELECT b.name, b.title, b.archetype_id, u.username as author, a.color as archetype_color
+    FROM builds b
+    JOIN users u ON b.user_id = u.id
+    JOIN archetypes a ON b.archetype_id = a.id
+    WHERE b.name = ?
+  `).get(req.params.name) as any;
+
+  if (!build) {
+    return res.status(404).send('');
+  }
+
+  const version = getDatabase().prepare(
+    'SELECT bv.id FROM build_versions bv JOIN builds b ON b.id = bv.build_id WHERE b.name = ? ORDER BY bv.version DESC LIMIT 1'
+  ).get(req.params.name) as any;
+  const score = version ? getDatabase().prepare('SELECT composite FROM scores WHERE build_version_id = ?').get(version.id) as any : null;
+  const scoreText = score ? score.composite.toFixed(1) : '—';
+  const title = (build.title || '').slice(0, 60);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#000"/>
+  <text x="80" y="120" fill="#666" font-family="monospace" font-size="24" font-weight="bold">GOODGAME.MD</text>
+  <text x="80" y="240" fill="#fff" font-family="monospace" font-size="64" font-weight="bold">@${build.name}</text>
+  <text x="80" y="310" fill="${build.archetype_color}" font-family="monospace" font-size="32">${build.archetype_id}</text>
+  <text x="80" y="370" fill="#888" font-family="monospace" font-size="24">${title}</text>
+  <text x="80" y="430" fill="#666" font-family="monospace" font-size="20">BY ${build.author}</text>
+  <text x="1040" y="240" fill="#FF6B2B" font-family="monospace" font-size="96" font-weight="bold" text-anchor="end">${scoreText}</text>
+  <text x="1040" y="280" fill="#666" font-family="monospace" font-size="20" text-anchor="end">GG SCORE</text>
+  <line x1="80" y1="480" x2="1120" y2="480" stroke="#333" stroke-width="1"/>
+  <text x="80" y="540" fill="#666" font-family="monospace" font-size="18">BEHAVIORAL DISPOSITION FILES FOR CLAUDE CODE</text>
+  <text x="1040" y="540" fill="#666" font-family="monospace" font-size="18" text-anchor="end">$ curl goodgame.md/@${build.name}</text>
+</svg>`;
+
+  res.set('Content-Type', 'image/svg+xml');
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.send(svg);
 });
 
 // RSS Feed

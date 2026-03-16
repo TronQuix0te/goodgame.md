@@ -139,6 +139,26 @@ function runMigrations(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_scores_version ON scores(build_version_id);
     CREATE INDEX IF NOT EXISTS idx_pull_log_build ON pull_log(build_id);
     CREATE INDEX IF NOT EXISTS idx_pull_log_time ON pull_log(pulled_at);
+
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      build_id INTEGER NOT NULL REFERENCES builds(id),
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      content TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_comments_build ON comments(build_id);
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      type TEXT NOT NULL,
+      message TEXT NOT NULL,
+      link TEXT,
+      is_read INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
   `);
 }
 
