@@ -13,8 +13,8 @@ export const config = {
   },
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
-    judgeModel: process.env.JUDGE_MODEL || 'claude-sonnet-4-20250514',
-    currentRelease: process.env.CURRENT_RELEASE || 'claude-opus-4-6',
+    judgeModel: process.env.JUDGE_MODEL || 'claude-opus-4-7',
+    currentRelease: process.env.CURRENT_RELEASE || 'claude-opus-4-7',
   },
   github: {
     clientId: process.env.GITHUB_CLIENT_ID || '',

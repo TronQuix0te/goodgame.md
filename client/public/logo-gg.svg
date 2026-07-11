@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 192" width="256" height="192">
+  <rect width="256" height="192" rx="16" fill="#000"/>
+
+  <!--
+    Exact ASCII (each char position):
+    "  ██████  ██████"   16 chars
+    " ██       ██"       12 chars
+    " ██   ██  ██   ██"  17 chars
+    " ██   ██  ██   ██"  17 chars
+    "  ██████   ██████"  17 chars
+
+    Each char = 12px wide, 24px tall
+    Offset: x=16, y=24
+    █ chars are filled blocks
+  -->
+
+  <!-- Row 0: "  ██████  ██████" -->
+  <!-- chars 2,3,4,5,6,7 then 10,11,12,13,14,15 -->
+  <rect x="40"  y="24" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="52"  y="24" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="64"  y="24" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="76"  y="24" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="88"  y="24" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="100" y="24" width="12" height="24" fill="#FF6B2B"/>
+
+  <rect x="136" y="24" width="12" height="24" fill="#FFF"/>
+  <rect x="148" y="24" width="12" height="24" fill="#FFF"/>
+  <rect x="160" y="24" width="12" height="24" fill="#FFF"/>
+  <rect x="172" y="24" width="12" height="24" fill="#FFF"/>
+  <rect x="184" y="24" width="12" height="24" fill="#FFF"/>
+  <rect x="196" y="24" width="12" height="24" fill="#FFF"/>
+
+  <!-- Row 1: " ██       ██" -->
+  <!-- chars 1,2 then 10,11 -->
+  <rect x="28"  y="48" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="40"  y="48" width="12" height="24" fill="#FF6B2B"/>
+
+  <rect x="136" y="48" width="12" height="24" fill="#FFF"/>
+  <rect x="148" y="48" width="12" height="24" fill="#FFF"/>
+
+  <!-- Row 2: " ██   ██  ██   ██" -->
+  <!-- chars 1,2  then 6,7  then 10,11  then 15,16 -->
+  <rect x="28"  y="72" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="40"  y="72" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="88"  y="72" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="100" y="72" width="12" height="24" fill="#FF6B2B"/>
+
+  <rect x="136" y="72" width="12" height="24" fill="#FFF"/>
+  <rect x="148" y="72" width="12" height="24" fill="#FFF"/>
+  <rect x="196" y="72" width="12" height="24" fill="#FFF"/>
+  <rect x="208" y="72" width="12" height="24" fill="#FFF"/>
+
+  <!-- Row 3: " ██   ██  ██   ██" (same as row 2) -->
+  <rect x="28"  y="96" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="40"  y="96" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="88"  y="96" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="100" y="96" width="12" height="24" fill="#FF6B2B"/>
+
+  <rect x="136" y="96" width="12" height="24" fill="#FFF"/>
+  <rect x="148" y="96" width="12" height="24" fill="#FFF"/>
+  <rect x="196" y="96" width="12" height="24" fill="#FFF"/>
+  <rect x="208" y="96" width="12" height="24" fill="#FFF"/>
+
+  <!-- Row 4: "  ██████   ██████" -->
+  <!-- chars 2,3,4,5,6,7  then 11,12,13,14,15,16 -->
+  <rect x="40"  y="120" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="52"  y="120" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="64"  y="120" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="76"  y="120" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="88"  y="120" width="12" height="24" fill="#FF6B2B"/>
+  <rect x="100" y="120" width="12" height="24" fill="#FF6B2B"/>
+
+  <rect x="148" y="120" width="12" height="24" fill="#FFF"/>
+  <rect x="160" y="120" width="12" height="24" fill="#FFF"/>
+  <rect x="172" y="120" width="12" height="24" fill="#FFF"/>
+  <rect x="184" y="120" width="12" height="24" fill="#FFF"/>
+  <rect x="196" y="120" width="12" height="24" fill="#FFF"/>
+  <rect x="208" y="120" width="12" height="24" fill="#FFF"/>
+
+  <!-- .MD dot -->
+  <rect x="220" y="132" width="12" height="12" fill="#FF6B2B"/>
+</svg>

@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Leaderboard from './pages/Leaderboard';
@@ -16,11 +17,33 @@ import ArchetypeDetail from './pages/ArchetypeDetail';
 import Notifications from './pages/Notifications';
 import Blog from './pages/Blog';
 import Article from './pages/Article';
+import Work from './pages/Work';
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname + location.search,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    }
+  }, [location.pathname, location.search]);
+  return null;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <PageViewTracker />
         <Layout>
           <Routes>
             <Route path="/" element={<Leaderboard />} />
@@ -38,6 +61,7 @@ export default function App() {
             <Route path="/archetype/:id" element={<ArchetypeDetail />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<Article />} />
+            <Route path="/work" element={<Work />} />
           </Routes>
         </Layout>
       </AuthProvider>

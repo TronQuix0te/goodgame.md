@@ -49,6 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {navLink('/compare', 'COMPARE')}
               {navLink('/quiz', 'QUIZ')}
               {navLink('/blog', 'BLOG', p => p.startsWith('/blog'))}
+              {navLink('/work', 'WORK')}
             </div>
           </div>
           <div className="hidden md:flex items-center gap-6 text-sm uppercase tracking-widest">
@@ -87,6 +88,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {navLink('/compare', 'COMPARE')}
             {navLink('/quiz', 'QUIZ')}
             {navLink('/blog', 'BLOG', p => p.startsWith('/blog'))}
+            {navLink('/work', 'WORK')}
             {user ? (
               <>
                 {navLink('/submit', 'SUBMIT')}

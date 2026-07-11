@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-05-03 — Google Analytics
+
+- GA4 (`G-W2F6N49YXD`) wired into `client/index.html` with `send_page_view: false` so the SPA controls firing.
+- `PageViewTracker` in `App.tsx` listens to `useLocation` and fires a `page_view` on every React Router navigation (path + search + title).
+
+## 2026-05-01 — Rejudge writeup published
+
+- New article `/blog/opus-4-7-rejudge-experiment` (~2400 words) — methodology, findings, per-archetype effects, and the @blitz case study from the Sonnet 4 → Opus 4.7 judge swap.
+- Anchored to the broader conversation with inline links + a "Further reading" section: Anthropic engineering posts (context engineering, tool writing, harnesses, building effective agents) and Karpathy's 2025 LLM Year in Review.
+- Sets up the next experiment: running the same registry through GPT-5 Codex as a cross-family sanity check on the Opus 4.7 rankings.
+
+## 2026-04-30 — Re-judge with Opus 4.7
+
+- Default `judgeModel` and `currentRelease` bumped to `claude-opus-4-7`.
+- Re-scored all 20 published builds with Opus 4.7. Stale Sonnet 4 score rows pruned so leaderboard joins return one row per build.
+- `rescore.mjs` now mirrors the full `judge.ts` prompt and re-crowns champions per touched season after scoring. New top-of-season:
+  - Opus 4 Era → @ship-or-die (88.1)
+  - Opus 4.6 Era → @blitz (69.2)
+- Notable shift: the previously suspicious cluster of identical 87.5s spread out, and @blitz was correctly knocked down for being a GOFAST file declared as COMBO.
+
 ## 2026-03-16 — Phase 1: Foundation + Features
 
 ### Auth
